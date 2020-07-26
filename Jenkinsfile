@@ -1,0 +1,46 @@
+
+
+node
+{
+
+def mavenHome = tool name: "maven3.6.3"
+
+stage('CheckoutCode')
+{
+git branch: 'development', credentialsId: '57a75233-8c68-492d-9862-4343511ec292', url: 'https://github.com/sudi-ec-projects/maven-web-application.git'
+}
+
+stage('Build')
+{
+sh "${mavenHome}/bin/mvn clean package" 
+}
+
+stage('ExecuteSonarQubeReport')
+{
+sh "${mavenHome}/bin/mvn sonar:sonar" 
+}
+
+stage('UploadArtifactIntoNexus')
+{
+sh "${mavenHome}/bin/mvn deploy" 
+}
+
+stage('DeployAppIntoTomcatServer')
+{
+sshagent(['501f1fc6-5eac-44be-b446-bdf60c0c66ca'])
+{
+sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.116.40:/opt/apache-tomcat-9.0.37/webapps/"
+}
+
+}
+
+stage('SendEmailNotification')
+{
+emailext body: '''Build is Over
+
+
+Regards
+Sudi''', subject: 'Build is Over', to: 'sudipta.mohapatra8297@gmail.com'
+}
+
+}
