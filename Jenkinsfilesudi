@@ -1,6 +1,6 @@
 
 
-node('Flipkart-node')
+node('flipkart-node')
 {
 
 def mavenHome = tool name: "maven3.6.3"
